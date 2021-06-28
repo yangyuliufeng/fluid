@@ -83,7 +83,13 @@ func (r *ElasticReconciler) reconcileElastic(ctx reconcileRequestContext) (ctrl.
 		return r.addFinalizerAndRequeue(ctx)
 	}
 
-	// DataBackup's phase transition: None -> Pending -> Executing -> Complete or Failed
+	// 3. init the record
+	if _, find := r.PodIPs[ctx.NamespacedName]; !find {
+		r.PodIPs[ctx.NamespacedName] = map[string]string{}
+		r.EpochStatuses[ctx.NamespacedName] = []elastictl.EpochStatus{}
+	}
+
+	// 4. ElasticTrainJob's phase transition: None -> Pending -> Executing -> Complete or Failed
 	switch ctx.ElasticTrainJob.Status.Phase {
 	case common.PhaseNone:
 		return r.reconcileNoneElastic(ctx)
