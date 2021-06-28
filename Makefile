@@ -166,6 +166,14 @@ docker-push-webhook: docker-build-webhook
 docker-push-elastic: docker-build-elastic
 	docker push ${ELASTIC_IMG}:${GIT_VERSION}
 
+gpu-test:
+	git commit -a -m "test"
+	rm -rf fluid.tgz
+	tar -zcv -f fluid.tgz .
+	ssh -f aikube@132.252.41.91 rm -rf ~/fluid.tgz
+	scp fluid.tgz aikube@132.252.41.91:/home/aikube
+	ssh -f aikube@132.252.41.91 bash "rm -rf ~/fluid && mkdir ~/fluid && tar zxv -f fluid.tgz -C ~/fluid && cd ~/fluid && make docker-build-elastic-controller"
+
 docker-build-all: docker-build-dataset-controller docker-build-alluxioruntime-controller docker-build-jindoruntime-controller docker-build-csi docker-build-init-users fluid-build-webhook
 docker-push-all: docker-push-dataset-controller docker-push-alluxioruntime-controller docker-push-jindoruntime-controller docker-push-csi docker-push-init-users docker-push-webhook
 
