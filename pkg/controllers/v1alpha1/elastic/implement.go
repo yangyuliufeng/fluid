@@ -2,6 +2,7 @@ package elastic
 
 import (
 	"context"
+	"fmt"
 	"github.com/fluid-cloudnative/fluid/pkg/common"
 	"github.com/fluid-cloudnative/fluid/pkg/ddc/alluxio/operations"
 	elastictl "github.com/fluid-cloudnative/fluid/pkg/elastic"
@@ -9,7 +10,6 @@ import (
 	"github.com/fluid-cloudnative/fluid/pkg/utils/kubeclient"
 	"os/exec"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -122,10 +122,10 @@ func (r *ElasticReconciler) reconcileExecutingElastic(ctx reconcileRequestContex
 			totalTime, meanSpeed := elastictl.CalMeanAndTotal(r.EpochStatuses[ctx.NamespacedName])
 			elasticTrainJobToUpdate := ctx.ElasticTrainJob.DeepCopy()
 			elasticTrainJobToUpdate.Status.CurrentEpoch.Sequence = currentEpoch
-			elasticTrainJobToUpdate.Status.CurrentEpoch.TimeCost = strconv.FormatFloat(currentTimeCost, 'E', -1, 64) + "s"
-			elasticTrainJobToUpdate.Status.CurrentEpoch.Speed = strconv.FormatFloat(currentSpeed, 'E', -1, 64) + " " + speedUnit
-			elasticTrainJobToUpdate.Status.UptoNow.TotalTimeCost = strconv.FormatFloat(totalTime, 'E', -1, 64) + "s"
-			elasticTrainJobToUpdate.Status.UptoNow.MeanSpeed = strconv.FormatFloat(meanSpeed, 'E', -1, 64) + speedUnit
+			elasticTrainJobToUpdate.Status.CurrentEpoch.TimeCost = fmt.Sprintf("%.1f", currentTimeCost) + "s"
+			elasticTrainJobToUpdate.Status.CurrentEpoch.Speed = fmt.Sprintf("%.1f", currentSpeed) + " " + speedUnit
+			elasticTrainJobToUpdate.Status.UptoNow.TotalTimeCost = fmt.Sprintf("%.1f", totalTime) + "s"
+			elasticTrainJobToUpdate.Status.UptoNow.MeanSpeed = fmt.Sprintf("%.1f", meanSpeed) + " " + speedUnit
 
 			if err := r.Update(context.TODO(), elasticTrainJobToUpdate); err != nil {
 				r.Log.Error(err, "failed to update the elasticTrainJob", "elasticTrainJob", ctx.ElasticTrainJob.Name)

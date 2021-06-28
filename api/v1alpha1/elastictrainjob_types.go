@@ -68,7 +68,6 @@ type ElasticTrainJobStatus struct {
 	ResourceUsed Resource     `json:"resourceUsed,omitempty"`
 }
 
-// +kubebuilder:printcolumn:name="InitWorkerNum",type="string",JSONPath=`.spec.initWorkerNum`
 // +kubebuilder:printcolumn:name="WorkerNum",type="string",JSONPath=`.status.workerNum`
 // +kubebuilder:printcolumn:name="Phase",type="string",JSONPath=`.status.phase`
 // +kubebuilder:printcolumn:name="Sequence",type="string",JSONPath=`.status.currentEpoch.sequence`
