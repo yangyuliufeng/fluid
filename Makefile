@@ -12,6 +12,7 @@ CSI_IMG ?= registry.aliyuncs.com/fluid/fluid-csi
 LOADER_IMG ?= registry.aliyuncs.com/fluid/fluid-dataloader
 INIT_USERS_IMG ?= registry.aliyuncs.com/fluid/init-users
 WEBHOOK_IMG ?= registry.aliyuncs.com/fluid/fluid-webhook
+ELASTIC_IMG ?= reg.harbor.com/public-test/elastic-controller
 
 LOCAL_FLAGS ?= -gcflags=-l
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -68,6 +69,9 @@ jindoruntime-controller-build: generate fmt vet
 webhook-build: generate fmt vet
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  go build -gcflags="-N -l" -a -o bin/fluid-webhook -ldflags '${LDFLAGS}' cmd/webhook/main.go
 
+elastic-build:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  go build -gcflags="-N -l" -a -o bin/elastic-controller -ldflags '${LDFLAGS}' cmd/elastic/main.go
+
 # Debug against the configured Kubernetes cluster in ~/.kube/config, add debug
 debug: generate fmt vet manifests
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=off  dlv debug --headless --listen ":12345" --log --api-version=2 cmd/controller/main.go
@@ -107,7 +111,7 @@ generate: controller-gen
 
 # Update fluid helm chart
 update-crd: manifests
-	cp config/crd/bases/* charts/fluid/fluid/crds
+	cp config/crd/bases/data.fluid.io_elastictrainjobs.yaml charts/elastic/crd.yaml
 
 update-api-doc:
 	bash tools/api-doc-gen/generate_api_doc.sh && mv tools/api-doc-gen/api_doc.md docs/zh/dev/api_doc.md && cp docs/zh/dev/api_doc.md docs/en/dev/api_doc.md
@@ -134,6 +138,9 @@ docker-build-init-users:
 docker-build-webhook:
 	docker build --no-cache . -f docker/Dockerfile.webhook -t ${WEBHOOK_IMG}:${GIT_VERSION}
 
+docker-build-elastic-controller:
+	docker build --no-cache . -f docker/Dockerfile.elastic -t ${ELASTIC_IMG}:${GIT_VERSION}
+
 # Push the docker image
 docker-push-dataset-controller: docker-build-dataset-controller
 	docker push ${DATASET_CONTROLLER_IMG}:${GIT_VERSION}
@@ -155,6 +162,9 @@ docker-push-init-users: docker-build-init-users
 
 docker-push-webhook: docker-build-webhook
 	docker push ${WEBHOOK_IMG}:${GIT_VERSION}
+
+docker-push-elastic: docker-build-elastic
+	docker push ${ELASTIC_IMG}:${GIT_VERSION}
 
 docker-build-all: docker-build-dataset-controller docker-build-alluxioruntime-controller docker-build-jindoruntime-controller docker-build-csi docker-build-init-users fluid-build-webhook
 docker-push-all: docker-push-dataset-controller docker-push-alluxioruntime-controller docker-push-jindoruntime-controller docker-push-csi docker-push-init-users docker-push-webhook

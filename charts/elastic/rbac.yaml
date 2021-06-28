@@ -1,0 +1,34 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: elastic-controller
+rules:
+  - apiGroups:
+      - '*'
+    resources:
+       - '*'
+    verbs:
+      - '*'
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: elastic-clusterrolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: elastic-controller
+subjects:
+  - kind: ServiceAccount
+    name: elastic-controller
+    namespace: fluid-system
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: elastic-controller
+  namespace: fluid-system

@@ -1,0 +1,15 @@
+FROM reg.harbor.com/common/golang:1.14.2 as builder
+
+WORKDIR /go/src/github.com/fluid-cloudnative/fluid
+COPY . .
+
+RUN make elastic-build && \
+    cp bin/elastic-controller /go/bin/elastic-controller
+
+FROM reg.harbor.com/fluid/dataset-controller:v0.6.0-5d13d93
+
+COPY --from=builder /go/bin/elastic-controller /usr/local/bin/elastic-controller
+
+RUN chmod -R u+x /usr/local/bin/
+
+CMD ["elastic-controller", "start"]

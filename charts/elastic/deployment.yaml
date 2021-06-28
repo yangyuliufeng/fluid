@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elastic-controller
+  namespace: fluid-system
+spec:
+  selector:
+    matchLabels:
+      control-plane: elastic-controller
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: elastic-controller
+    spec:
+      serviceAccountName: elastic-controller
+      containers:
+        - image: reg.harbor.com/public-test/elastic-controller:v0.6.0-HEAD
+          name: manager
+          command: ["elastic-controller", "start"]
+          args:
+            - --development=false
+          ports:
+            - containerPort: 8080
+              name: metrics
+              protocol: TCP

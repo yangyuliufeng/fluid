@@ -24,6 +24,52 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+func IsPodExist(client client.Client, name, namespace string) (found bool, err error) {
+	key := types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	cm := &v1.Pod{}
+
+	if err = client.Get(context.TODO(), key, cm); err != nil {
+		if apierrs.IsNotFound(err) {
+			found = false
+			err = nil
+		}
+	} else {
+		found = true
+	}
+	return found, err
+}
+
+func DeletePod(client client.Client, name, namespace string) (err error) {
+	key := types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+	found := false
+
+	cm := &v1.Pod{}
+	if err = client.Get(context.TODO(), key, cm); err != nil {
+		if apierrs.IsNotFound(err) {
+			log.Info("Skip deleting the pod due to it's not found", "name", name,
+				"namespace", namespace)
+			found = false
+			err = nil
+		} else {
+			return err
+		}
+	} else {
+		found = true
+	}
+	if found {
+		err = client.Delete(context.TODO(), cm)
+	}
+
+	return err
+}
+
 // IsCompletePod determines if the pod is complete
 func IsCompletePod(pod *v1.Pod) bool {
 	if pod == nil {

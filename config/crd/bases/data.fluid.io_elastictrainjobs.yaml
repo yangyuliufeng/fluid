@@ -1,0 +1,143 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.3.0
+  creationTimestamp: null
+  name: elastictrainjobs.data.fluid.io
+spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.initWorkerNum
+    name: InitWorkerNum
+    type: string
+  - JSONPath: .status.workerNum
+    name: WorkerNum
+    type: string
+  - JSONPath: .status.phase
+    name: Phase
+    type: string
+  - JSONPath: .status.currentEpoch.sequence
+    name: Sequence
+    type: string
+  - JSONPath: .status.currentEpoch.speed
+    name: Speed
+    type: string
+  - JSONPath: .status.currentEpoch.timeCost
+    name: TimeCost
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
+  group: data.fluid.io
+  names:
+    kind: ElasticTrainJob
+    listKind: ElasticTrainJobList
+    plural: elastictrainjobs
+    singular: elastictrainjob
+  scope: Namespaced
+  subresources: {}
+  validation:
+    openAPIV3Schema:
+      description: ElasticTrainJob is the Schema for the elastictrainjobs API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ElasticTrainJobSpec defines the desired state of ElasticTrainJob
+          properties:
+            batchSize:
+              type: integer
+            configmapName:
+              description: user should create a configmap with the main.py file
+              type: string
+            epochNumbers:
+              type: integer
+            initWorkerNum:
+              type: integer
+            maxWorkerNum:
+              type: integer
+            minWorkerNum:
+              type: integer
+            resourceRequest:
+              description: Resource is the resource cost of ElasticTrainJob
+              properties:
+                CPUCore:
+                  type: integer
+                GPUCard:
+                  type: integer
+                GPUMemGi:
+                  type: integer
+                MemGi:
+                  type: integer
+              type: object
+            timeCost:
+              description: user should submit a spec TimeCost it should be in the
+                unit of sec
+              type: string
+            ufsTotal:
+              description: use should tell the system the ufsTotal of dataset
+              type: string
+          type: object
+        status:
+          description: ElasticTrainJobStatus defines the observed state of ElasticTrainJob
+          properties:
+            currentEpoch:
+              description: CurrentEpoch tells user the current epoch's status of ElasticTrainJob
+              properties:
+                sequence:
+                  type: integer
+                speed:
+                  type: string
+                timeCost:
+                  type: string
+              type: object
+            phase:
+              description: Phase is a valid value of a task stage
+              type: string
+            resourceUsed:
+              description: Resource is the resource cost of ElasticTrainJob
+              properties:
+                CPUCore:
+                  type: integer
+                GPUCard:
+                  type: integer
+                GPUMemGi:
+                  type: integer
+                MemGi:
+                  type: integer
+              type: object
+            upToNow:
+              description: UpToNow tells user the up to now status of ElasticTrainJob
+              properties:
+                meanSpeed:
+                  type: string
+                totalTimeCost:
+                  type: string
+              type: object
+            workerNum:
+              type: integer
+          type: object
+      type: object
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
