@@ -173,8 +173,7 @@ gpu-test:
 	ssh -f aikube@132.252.41.91 rm -rf /home/aikube/fluid.tgz
 	scp fluid.tgz aikube@132.252.41.91:/home/aikube
 	ssh -f aikube@132.252.41.91 "rm -rf /home/aikube/fluid && mkdir /home/aikube/fluid"
-	ssh -f aikube@132.252.41.91 tar zxv -f fluid.tgz -C /home/aikube/fluid
-	ssh -f aikube@132.252.41.91 "cd /home/aikube/fluid && make docker-build-elastic-controller"
+	ssh -f aikube@132.252.41.91 tar zxv -f fluid.tgz -C /home/aikube/fluid && cd /home/aikube/fluid && make docker-build-elastic-controller"
 
 docker-build-all: docker-build-dataset-controller docker-build-alluxioruntime-controller docker-build-jindoruntime-controller docker-build-csi docker-build-init-users fluid-build-webhook
 docker-push-all: docker-push-dataset-controller docker-push-alluxioruntime-controller docker-push-jindoruntime-controller docker-push-csi docker-push-init-users docker-push-webhook

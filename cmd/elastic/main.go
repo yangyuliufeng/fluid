@@ -18,8 +18,10 @@ package main
 import (
 	"fmt"
 	"github.com/fluid-cloudnative/fluid"
+	"github.com/fluid-cloudnative/fluid/pkg/elastic"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap/zapcore"
+	"k8s.io/apimachinery/pkg/types"
 	"os"
 
 	zapOpt "go.uber.org/zap"
@@ -114,10 +116,13 @@ func handle() {
 	}
 
 	if err = (&elastictl.ElasticReconciler{
-		Client:   mgr.GetClient(),
-		Log:      ctrl.Log.WithName("elastictl").WithName("Elastic"),
-		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor("Elastic"),
+		Client:          mgr.GetClient(),
+		Log:             ctrl.Log.WithName("elastictl").WithName("Elastic"),
+		Scheme:          mgr.GetScheme(),
+		Recorder:        mgr.GetEventRecorderFor("Elastic"),
+		PodIPs:          map[types.NamespacedName]map[string]string{},
+		EpochStatuses:   map[types.NamespacedName][]elastic.EpochStatus{},
+		SpeedUnits:      map[types.NamespacedName]string{},
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Elastic")
 		os.Exit(1)
