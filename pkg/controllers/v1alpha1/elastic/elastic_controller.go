@@ -34,7 +34,6 @@ type ElasticReconciler struct {
 
 type reconcileRequestContext struct {
 	context.Context
-	Log             logr.Logger
 	ElasticTrainJob datav1alpha1.ElasticTrainJob
 	types.NamespacedName
 }
@@ -45,15 +44,14 @@ type reconcileRequestContext struct {
 func (r *ElasticReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := reconcileRequestContext{
 		Context:        context.Background(),
-		Log:            r.Log.WithValues("elastic", req.NamespacedName),
 		NamespacedName: req.NamespacedName,
 	}
 
 	notFound := false
-	ctx.Log.Info("process the request", "request", req)
+	r.Log.Info("process the request", "request", req)
 
 	if err := r.Get(ctx, req.NamespacedName, &ctx.ElasticTrainJob); err != nil {
-		ctx.Log.Info("Unable to fetch ElasticTrainJob", "reason", err)
+		r.Log.Info("Unable to fetch ElasticTrainJob", "reason", err)
 		if utils.IgnoreNotFound(err) != nil {
 			r.Log.Error(err, "failed to get ElasticTrainJob")
 			return ctrl.Result{}, err
@@ -65,7 +63,7 @@ func (r *ElasticReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	if notFound {
-		ctx.Log.Info("Not found!", "NamespacedName", req.NamespacedName)
+		r.Log.Info("Not found!", "NamespacedName", req.NamespacedName)
 	}
 	return ctrl.Result{}, nil
 }
@@ -85,10 +83,12 @@ func (r *ElasticReconciler) reconcileElastic(ctx reconcileRequestContext) (ctrl.
 
 	// 3. init the record
 	if _, find := r.PodIPs[ctx.NamespacedName]; !find {
+		r.Log.Info("first create, init a record to store info", "ElasticTrainJob", ctx.ElasticTrainJob.Name)
 		r.PodIPs[ctx.NamespacedName] = map[string]string{}
 		r.EpochStatuses[ctx.NamespacedName] = []elastictl.EpochStatus{}
 	}
 
+	r.Log.Info("enter the logic accord to phase", "ElasticTrainJob", ctx.ElasticTrainJob.Name)
 	// 4. ElasticTrainJob's phase transition: None -> Pending -> Executing -> Complete or Failed
 	switch ctx.ElasticTrainJob.Status.Phase {
 	case common.PhaseNone:
@@ -102,7 +102,7 @@ func (r *ElasticReconciler) reconcileElastic(ctx reconcileRequestContext) (ctrl.
 	case common.PhaseFailed:
 		return r.reconcileFailedElastic(ctx)
 	default:
-		ctx.Log.Info("Unknown Elastic phase, won't reconcile it", "Elastic", ctx.ElasticTrainJob)
+		r.Log.Info("Unknown Elastic phase, won't reconcile it", "Elastic", ctx.ElasticTrainJob)
 	}
 	return utils.NoRequeue()
 }
@@ -122,13 +122,13 @@ func (r *ElasticReconciler) reconcileElasticDeletion(ctx reconcileRequestContext
 		ctx.ElasticTrainJob.ObjectMeta.Finalizers = utils.RemoveString(ctx.ElasticTrainJob.ObjectMeta.Finalizers, finalizer)
 
 		if err := r.Update(ctx, &ctx.ElasticTrainJob); err != nil {
-			ctx.Log.Error(err, "Failed to remove finalizer")
+			r.Log.Error(err, "Failed to remove finalizer")
 			return ctrl.Result{}, err
 		}
-		ctx.Log.Info("Finalizer is removed", "ElasticTrainJob", ctx.ElasticTrainJob)
+		r.Log.Info("Finalizer is removed", "ElasticTrainJob", ctx.ElasticTrainJob)
 	}
 
-	ctx.Log.Info("delete the ElasticTrainJob successfully", "dataset", ctx.ElasticTrainJob)
+	r.Log.Info("delete the ElasticTrainJob successfully", "dataset", ctx.ElasticTrainJob)
 
 	return ctrl.Result{}, nil
 }
@@ -137,7 +137,7 @@ func (r *ElasticReconciler) addFinalizerAndRequeue(ctx reconcileRequestContext) 
 	ctx.ElasticTrainJob.ObjectMeta.Finalizers = append(ctx.ElasticTrainJob.ObjectMeta.Finalizers, finalizer)
 	prevGeneration := ctx.ElasticTrainJob.ObjectMeta.GetGeneration()
 	if err := r.Update(ctx, &ctx.ElasticTrainJob); err != nil {
-		ctx.Log.Error(err, "Failed to add finalizer", "StatusUpdateError", ctx)
+		r.Log.Error(err, "Failed to add finalizer", "StatusUpdateError", ctx)
 		return utils.RequeueIfError(err)
 	}
 
