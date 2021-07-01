@@ -1,0 +1,16 @@
+apiVersion: data.fluid.io/v1alpha1
+kind: ElasticTrainJob
+metadata:
+  name: benchmark
+  namespace: default
+spec:
+  configmapName: "main"
+  epochNumbers: 100
+  batchSize: 32
+  ufsTotal: "550Gi"
+  timeCost: "3000s"
+  resourceRequest:
+    CPUCore: 4
+    MemGi: 100
+    GPUCard: 3
+    GPUMemGi: 10

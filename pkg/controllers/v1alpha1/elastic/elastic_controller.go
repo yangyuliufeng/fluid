@@ -88,7 +88,6 @@ func (r *ElasticReconciler) reconcileElastic(ctx reconcileRequestContext) (ctrl.
 		r.EpochStatuses[ctx.NamespacedName] = []elastictl.EpochStatus{}
 	}
 
-	r.Log.Info("enter the logic accord to phase", "ElasticTrainJob", ctx.ElasticTrainJob.Name)
 	// 4. ElasticTrainJob's phase transition: None -> Pending -> Executing -> Complete or Failed
 	switch ctx.ElasticTrainJob.Status.Phase {
 	case common.PhaseNone:

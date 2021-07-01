@@ -127,12 +127,17 @@ func createPod(client client.Client, podName string, namespace string, configmap
 }
 
 func ParseLastLineLog(log string) (currentEpoch int, timeCost float64, speed float64, speedUnit string, err error) {
-	if !strings.HasPrefix(log, "[0]<stdout>:status of epoch ") {
+	if !strings.Contains(log, "<stdout>:status of epoch") {
 		err = fmt.Errorf("log is not supported to be parsed")
 		return
 	}
-	log = strings.TrimPrefix(log, "[0]<stdout>:status of epoch ")
-	str := strings.Split(log, ":")
+	str :=  strings.Split(log, "]")
+	if len(str) < 1 {
+		err = fmt.Errorf("log is not supported to be parsed")
+		return
+	}
+	log = strings.TrimPrefix(str[1], "<stdout>:status of epoch ")
+	str = strings.Split(log, ":")
 	currentEpoch, err = strconv.Atoi(str[0])
 	if err != nil {
 		return

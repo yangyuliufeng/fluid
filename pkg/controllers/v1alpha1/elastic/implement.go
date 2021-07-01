@@ -105,7 +105,7 @@ func (r *ElasticReconciler) reconcileExecutingElastic(ctx reconcileRequestContex
 		return utils.RequeueIfError(err)
 	}
 	lastLineLog := string(stdout)
-	if strings.HasPrefix(lastLineLog, "[0]<stdout>:status of epoch ") {
+	if strings.Contains(lastLineLog, "<stdout>:status of epoch") {
 		currentEpoch, currentTimeCost, currentSpeed, speedUnit, err := elastictl.ParseLastLineLog(lastLineLog)
 		if err != nil {
 			return utils.RequeueIfError(err)
@@ -123,9 +123,9 @@ func (r *ElasticReconciler) reconcileExecutingElastic(ctx reconcileRequestContex
 			elasticTrainJobToUpdate := ctx.ElasticTrainJob.DeepCopy()
 			elasticTrainJobToUpdate.Status.CurrentEpoch.Sequence = currentEpoch
 			elasticTrainJobToUpdate.Status.CurrentEpoch.TimeCost = fmt.Sprintf("%.1f", currentTimeCost) + "s"
-			elasticTrainJobToUpdate.Status.CurrentEpoch.Speed = fmt.Sprintf("%.1f", currentSpeed) + " " + speedUnit
+			elasticTrainJobToUpdate.Status.CurrentEpoch.Speed = fmt.Sprintf("%.1f", currentSpeed) + speedUnit
 			elasticTrainJobToUpdate.Status.UptoNow.TotalTimeCost = fmt.Sprintf("%.1f", totalTime) + "s"
-			elasticTrainJobToUpdate.Status.UptoNow.MeanSpeed = fmt.Sprintf("%.1f", meanSpeed) + " " + speedUnit
+			elasticTrainJobToUpdate.Status.UptoNow.MeanSpeed = fmt.Sprintf("%.1f", meanSpeed) + speedUnit
 
 			if err := r.Update(context.TODO(), elasticTrainJobToUpdate); err != nil {
 				r.Log.Error(err, "failed to update the elasticTrainJob", "elasticTrainJob", ctx.ElasticTrainJob.Name)
