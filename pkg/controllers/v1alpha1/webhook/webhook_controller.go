@@ -22,12 +22,10 @@ import (
 	"github.com/fluid-cloudnative/fluid/pkg/utils"
 	fluidwebhook "github.com/fluid-cloudnative/fluid/pkg/webhook"
 	"github.com/go-logr/logr"
-	"os"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"time"
 )
-
-const controllerName string = "WebhookController"
 
 type WebhookReconciler struct {
 	Client      client.Client
@@ -37,20 +35,25 @@ type WebhookReconciler struct {
 	Log         logr.Logger
 }
 
-func (r *WebhookReconciler) Reconcile(context context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *WebhookReconciler) Reconcile(context.Context, ctrl.Request) (ctrl.Result, error) {
 
 	certBuilder := fluidwebhook.NewCertificateBuilder(r.Client, r.Log)
-	caCert, err := certBuilder.BuildAndSyncCABundle(common.WebhookServiceName, common.WebhookName, r.CertDir)
-	if err != nil || len(caCert) == 0 {
-		r.Log.Error(err, "patch webhook CABundle failed")
-		os.Exit(1)
-	}
 
-	err = certBuilder.PatchCABundle(r.WebhookName, r.caCert)
-	if err != nil {
-		r.Log.Error(err, "fail to patch CABundle of MutatingWebhookConfiguration on update")
+	if len(r.caCert) == 0 {
+		caCert, err := certBuilder.BuildAndSyncCABundle(common.WebhookServiceName, common.WebhookName, r.CertDir)
+		if err != nil || len(caCert) == 0 {
+			r.Log.Error(err, "patch webhook CABundle failed")
+			return utils.RequeueAfterInterval(10 * time.Second)
+		}
+		r.caCert = caCert
+	} else {
+		err := certBuilder.PatchCABundle(r.WebhookName, r.caCert)
+		if err != nil {
+			r.Log.Error(err, "fail to patch CABundle of MutatingWebhookConfiguration on update")
+			return utils.RequeueAfterInterval(10 * time.Second)
+		}
 	}
-
+	
 	return utils.NoRequeue()
 
 }

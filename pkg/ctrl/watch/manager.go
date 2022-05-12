@@ -18,6 +18,7 @@ package watch
 
 import (
 	"context"
+	"github.com/fluid-cloudnative/fluid/pkg/common"
 	webhookReconcile "github.com/fluid-cloudnative/fluid/pkg/controllers/v1alpha1/webhook"
 	"github.com/go-logr/logr"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
@@ -119,13 +120,14 @@ func isOwnerMatched(controllerRef *metav1.OwnerReference, c Controller) bool {
 	return kind == controllerRef.Kind && apiVersion == controllerRef.APIVersion
 }
 
-func SetupWatcherForWebhook(mgr ctrl.Manager, client client.Client, webhookName, certDir string, log logr.Logger) (err error) {
+func SetupWatcherForWebhook(mgr ctrl.Manager, client client.Client, certDir string, log logr.Logger) (err error) {
 	options := controller.Options{}
+	webhookName := common.WebhookName
 	options.Reconciler = &webhookReconcile.WebhookReconciler{
 		Client:      client,
 		WebhookName: webhookName,
-		Log:         log,
 		CertDir:     certDir,
+		Log:         log,
 	}
 	webhookController, err := controller.New("webhook-controller", mgr, options)
 	if err != nil {
