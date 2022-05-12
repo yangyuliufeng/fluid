@@ -24,7 +24,6 @@ import (
 	"github.com/fluid-cloudnative/fluid/pkg/common"
 	"github.com/fluid-cloudnative/fluid/pkg/ctrl/watch"
 	"github.com/fluid-cloudnative/fluid/pkg/utils"
-	fluidwebhook "github.com/fluid-cloudnative/fluid/pkg/webhook"
 	"github.com/fluid-cloudnative/fluid/pkg/webhook/handler"
 	"github.com/spf13/cobra"
 	zapOpt "go.uber.org/zap"
@@ -122,14 +121,7 @@ func handle() {
 	}
 
 	// patch admission webhook ca bundle
-	certBuilder := fluidwebhook.NewCertificateBuilder(client, setupLog)
-	caCert, err := certBuilder.BuildAndSyncCABundle(common.WebhookServiceName, common.WebhookName, certDir)
-	if err != nil || len(caCert) == 0 {
-		setupLog.Error(err, "patch webhook CABundle failed")
-		os.Exit(1)
-	}
-
-	if err = watch.SetupWatcherForWebhook(mgr, certBuilder, common.WebhookName, caCert); err != nil {
+	if err = watch.SetupWatcherForWebhook(mgr, client, common.WebhookName, certDir, setupLog); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "webhook")
 		os.Exit(1)
 	}
