@@ -40,7 +40,7 @@ func (r *WebhookReconciler) Reconcile(context.Context, ctrl.Request) (ctrl.Resul
 	certBuilder := fluidwebhook.NewCertificateBuilder(r.Client, r.Log)
 
 	if len(r.caCert) == 0 {
-		caCert, err := certBuilder.BuildAndSyncCABundle(common.WebhookServiceName, common.WebhookName, r.CertDir)
+		caCert, err := certBuilder.BuildAndSyncCABundle(common.WebhookServiceName, r.WebhookName, r.CertDir)
 		if err != nil || len(caCert) == 0 {
 			r.Log.Error(err, "patch webhook CABundle failed")
 			return utils.RequeueAfterInterval(10 * time.Second)
@@ -53,7 +53,7 @@ func (r *WebhookReconciler) Reconcile(context.Context, ctrl.Request) (ctrl.Resul
 			return utils.RequeueAfterInterval(10 * time.Second)
 		}
 	}
-	
+
 	return utils.NoRequeue()
 
 }
